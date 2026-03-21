@@ -3,9 +3,22 @@ import express from "express";
 import mongoose from "mongoose";
 
 const uri = process.env.MONGODB_URI;
-const port = process.env.PORT;
+const port = process.env.PORT || 3000;
 
-const connectDB = async () => {
+const app = express();
+
+app.get("/home/:username", (req, res) => {
+  const name = req.params.username;
+  res.send("kiss me " + name);
+});
+
+app.get("/health", (req, res) => {
+  const appStatus = mongoose.connection.readyState === 1 ? "Connected" : "Disconnected";
+  res.status(appStatus === "Connected" ? 200 : 500).send(appStatus);
+});
+
+
+const startServer = async () => {
   try {
     await mongoose.connect(uri);
     console.log("Connected to MongoDB");
