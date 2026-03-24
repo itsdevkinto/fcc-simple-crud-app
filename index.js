@@ -6,11 +6,12 @@ const uri = process.env.MONGODB_URI;
 const port = process.env.PORT || 3000;
 
 const app = express();
+app.use(express.json());
 
-app.get("/home/:username", (req, res) => {
-  const name = req.params.username;
-  res.send("kiss me " + name);
-});
+app.post("/", async (req, res) => {
+  console.log(req.body);
+  res.send(req.body);
+})
 
 app.get("/health", (req, res) => {
   const appStatus = mongoose.connection.readyState === 1 ? "Connected" : "Disconnected";
