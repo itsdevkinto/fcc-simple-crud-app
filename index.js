@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import mongoose from "mongoose";
+import Product from "./models/product.model.js";
 
 const uri = process.env.MONGODB_URI;
 const port = process.env.PORT || 3000;
@@ -8,7 +9,7 @@ const port = process.env.PORT || 3000;
 const app = express();
 app.use(express.json());
 
-app.post("/", async (req, res) => {
+app.post("/api/products", async (req, res) => {
   console.log(req.body);
   res.send(req.body);
 })
