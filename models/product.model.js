@@ -18,8 +18,8 @@ const productSchema = new mongoose.Schema(
     },
     image: {
       type: String,
-      required: [true, "Product image is required"],
-    },
+      required: false
+    }
   },
   {
     timestamps: true,

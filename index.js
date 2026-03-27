@@ -1,14 +1,61 @@
 import "dotenv/config";
 import express from "express";
 import mongoose from "mongoose";
-import Test from "./models/test.model.js";
 import Product from "./models/product.model.js";
+import Prod from "./models/prod.model.js";
 
 const uri = process.env.MONGODB_URI;
 const port = process.env.PORT || 3000;
 
 const app = express();
 app.use(express.json());
+
+app.get("/api/products", async (req, res) => {
+  try {
+    const products = await Product.find();
+    return res.send(products);
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .send({ message: "Failed to fetch", error: error.message });
+  }
+});
+
+app.get("/api/product/:id", async ({ params: { id } }, res) => {
+  try {
+    const product = await Product.findById(id);
+    return res.status(200).json(product);
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .send({ message: "Failed to fetch", error: error.message });
+  }
+});
+
+app.put("/api/product/:id", async ({ params: { id }, body }, res) => {
+  try {
+    const product = await Product.findByIdAndUpdate(id, body, {
+      new: true,
+      runValidators: true,
+    });
+    console.log(product);
+    if (!product) {
+      return res.status(404).send({ message: "Product not found" });
+    }
+    return res.status(200).send(product);
+  } catch (error) {
+    if (error.name === "CastError") {
+      return res.status(404).send({ message: "Invalid ID format" });
+    }
+    if (error.name === "ValidationError") {
+      return res.status(400).send({ message: error.message });
+    }
+
+    return res.status(500).send({ message: error.message });
+  }
+});
 
 app.post("/api/products", async (req, res) => {
   try {
@@ -17,18 +64,22 @@ app.post("/api/products", async (req, res) => {
     return res.status(201).send(product);
   } catch (error) {
     console.log(error);
-    return res.status(400).send();
+    return res
+      .status(400)
+      .send({ message: "Failed to create", error: error.message });
   }
 });
 
-app.post("/api/test", async (req, res) => {
+app.post("/api/prods", async (req, res) => {
   try {
-    const test = await Test.create(req.body);
+    const test = await Prod.create(req.body);
     console.log(test);
     return res.status(201).send(test);
   } catch (error) {
     console.log(error);
-    return res.status(400).send({ message: "Failed to create", error: error.message });
+    return res
+      .status(400)
+      .send({ message: "Failed to create", error: error.message });
   }
 });
 
@@ -42,11 +93,11 @@ const connectDB = async () => {
   try {
     await mongoose.connect(uri);
     console.log(`\x1b[36m`, "Connected to MongoDB");
-    return {success: true}
+    return { success: true };
   } catch (error) {
     console.error("Error connecting to MongoDB:", error.message);
     setTimeout(connectDB, 5000);
-    return {success: false, message: error.message}
+    return { success: false, message: error.message };
   }
 };
 
