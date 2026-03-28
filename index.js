@@ -2,7 +2,6 @@ import "dotenv/config";
 import express from "express";
 import mongoose from "mongoose";
 import Product from "./models/product.model.js";
-import Prod from "./models/prod.model.js";
 
 const uri = process.env.MONGODB_URI;
 const port = process.env.PORT || 3000;
@@ -13,7 +12,7 @@ app.use(express.json());
 app.get("/api/products", async (req, res) => {
   try {
     const products = await Product.find();
-    return res.send(products);
+    return res.status(200).send(products);
   } catch (error) {
     console.log(error);
     return res
@@ -37,11 +36,12 @@ app.get("/api/product/:id", async ({ params: { id } }, res) => {
 app.put("/api/product/:id", async ({ params: { id }, body }, res) => {
   try {
     const product = await Product.findByIdAndUpdate(id, body, {
-      new: true,
+      returnDocument: "after",
       runValidators: true,
     });
     console.log(product);
     if (!product) {
+      console.log("Product not found");
       return res.status(404).send({ message: "Product not found" });
     }
     return res.status(200).send(product);
@@ -57,24 +57,27 @@ app.put("/api/product/:id", async ({ params: { id }, body }, res) => {
   }
 });
 
+app.delete("/api/product/:id", async ({ params: { id } }, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(id);
+    if (!product) {
+      return res.status(404).send({ message: "Product not found" });
+    }
+
+    return res.status(200).json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .send({ message: "Failed to delete", error: error.message });
+  }
+});
+
 app.post("/api/products", async (req, res) => {
   try {
     const product = await Product.create(req.body);
     console.log(product);
     return res.status(201).send(product);
-  } catch (error) {
-    console.log(error);
-    return res
-      .status(400)
-      .send({ message: "Failed to create", error: error.message });
-  }
-});
-
-app.post("/api/prods", async (req, res) => {
-  try {
-    const test = await Prod.create(req.body);
-    console.log(test);
-    return res.status(201).send(test);
   } catch (error) {
     console.log(error);
     return res
