@@ -1,96 +1,15 @@
 import "dotenv/config";
 import express from "express";
 import mongoose from "mongoose";
-import Product from "./models/product.model.js";
+import productRoutes from "./routes/products.route.js";
 
 const uri = process.env.MONGODB_URI;
 const port = process.env.PORT || 3000;
 
 const app = express();
 app.use(express.json());
-
-app.get("/api/products", async (req, res) => {
-  try {
-    const products = await Product.find();
-    return res.status(200).send(products);
-  } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .send({ message: "Failed to fetch", error: error.message });
-  }
-});
-
-app.get("/api/product/:id", async ({ params: { id } }, res) => {
-  try {
-    const product = await Product.findById(id);
-    return res.status(200).json(product);
-  } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .send({ message: "Failed to fetch", error: error.message });
-  }
-});
-
-app.put("/api/product/:id", async ({ params: { id }, body }, res) => {
-  try {
-    const product = await Product.findByIdAndUpdate(id, body, {
-      returnDocument: "after",
-      runValidators: true,
-    });
-    console.log(product);
-    if (!product) {
-      console.log("Product not found");
-      return res.status(404).send({ message: "Product not found" });
-    }
-    return res.status(200).send(product);
-  } catch (error) {
-    if (error.name === "CastError") {
-      return res.status(404).send({ message: "Invalid ID format" });
-    }
-    if (error.name === "ValidationError") {
-      return res.status(400).send({ message: error.message });
-    }
-
-    return res.status(500).send({ message: error.message });
-  }
-});
-
-app.delete("/api/product/:id", async ({ params: { id } }, res) => {
-  try {
-    const product = await Product.findByIdAndDelete(id);
-    if (!product) {
-      return res.status(404).send({ message: "Product not found" });
-    }
-
-    return res.status(200).json({ message: "Product deleted successfully" });
-  } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .send({ message: "Failed to delete", error: error.message });
-  }
-});
-
-app.post("/api/products", async (req, res) => {
-  try {
-    const product = await Product.create(req.body);
-    console.log(product);
-    return res.status(201).send(product);
-  } catch (error) {
-    console.log(error);
-    return res
-      .status(400)
-      .send({ message: "Failed to create", error: error.message });
-  }
-});
-
-app.get("/health", (req, res) => {
-  const appStatus =
-    mongoose.connection.readyState === 1 ? "Connected" : "Disconnected";
-  res.status(appStatus === "Connected" ? 200 : 500).send(appStatus);
-});
+app.use(express.urlencoded({ extended: true }));
+app.use("/api/products", productRoutes);
 
 const connectDB = async () => {
   try {
