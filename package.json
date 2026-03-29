@@ -8,6 +8,7 @@
     "kinto": "node index.js",
     "dev": "nodemon --exec 'node --env-file=.env' index.js"
   },
+  "type": "module",
   "keywords": [],
   "author": "",
   "license": "ISC",

@@ -1,37 +1,34 @@
 import "dotenv/config";
 import express from "express";
 import mongoose from "mongoose";
+import productRoutes from "./routes/products.route.js";
 
 const uri = process.env.MONGODB_URI;
 const port = process.env.PORT || 3000;
 
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use("/api/products", productRoutes);
 
-app.post("/", async (req, res) => {
-  console.log(req.body);
-  res.send(req.body);
-})
-
-app.get("/health", (req, res) => {
-  const appStatus = mongoose.connection.readyState === 1 ? "Connected" : "Disconnected";
-  res.status(appStatus === "Connected" ? 200 : 500).send(appStatus);
-});
-
-
-const startServer = async () => {
+const connectDB = async () => {
   try {
     await mongoose.connect(uri);
     console.log(`\x1b[36m`, "Connected to MongoDB");
-    app.listen(port, () => {
-      console.log(`\x1b[36m`, "Server is running kinto");
-    });
+    return { success: true };
   } catch (error) {
     console.error("Error connecting to MongoDB:", error.message);
-    app.listen(port, () => {
-      console.log(`\x1b[36m`, "Server is running kinto");
-    });
+    setTimeout(connectDB, 5000);
+    return { success: false, message: error.message };
   }
+};
+
+const startServer = async () => {
+  await connectDB();
+
+  app.listen(port, () => {
+    console.log(`\x1b[36m`, "Server is running kinto on port", port);
+  });
 };
 
 mongoose.connection.on("error", (error) => {
@@ -40,6 +37,10 @@ mongoose.connection.on("error", (error) => {
 
 mongoose.connection.on("disconnected", () => {
   console.log("MongoDB disconnected");
+});
+
+mongoose.connection.on("reconnected", () => {
+  console.log("MongoDB reconnected");
 });
 
 startServer();

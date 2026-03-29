@@ -18,8 +18,8 @@ const productSchema = new mongoose.Schema(
     },
     image: {
       type: String,
-      required: [true, "Product image is required"],
-    },
+      required: false
+    }
   },
   {
     timestamps: true,
@@ -27,4 +27,4 @@ const productSchema = new mongoose.Schema(
 );
 
 const Product = mongoose.model("Product", productSchema);
-module.exports = Product;
+export default Product;
